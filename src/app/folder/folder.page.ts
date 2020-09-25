@@ -12,7 +12,8 @@ import {FileOpener} from '@ionic-native/file-opener/ngx';
   styleUrls: ['./folder.page.scss'],
 })
 export class FolderPage implements OnInit {
-  constructor(private activatedRoute: ActivatedRoute, private filePath: FilePath, private imagePicker: ImagePicker, private file: File, private fileOpener: FileOpener) { }
+  constructor(private activatedRoute: ActivatedRoute, private filePath: FilePath,
+              private imagePicker: ImagePicker, private file: File, private fileOpener: FileOpener) { }
   @ViewChild('htmlData') htmlData: ElementRef;
   public folder: string;
 
@@ -58,7 +59,7 @@ export class FolderPage implements OnInit {
   options = {
     // Android only. Max images to be selected, defaults to 15. If this is set to 1, upon
     // selection of a single image, the plugin will return it.
-    maximumImagesCount: 10,
+    maximumImagesCount: 1,
     // output type, defaults to FILE_URIs.
     // available options are
     // window.imagePicker.OutputType.FILE_URI (0) or
@@ -79,18 +80,32 @@ export class FolderPage implements OnInit {
   ngOnInit() {
     this.folder = this.activatedRoute.snapshot.paramMap.get('id');
   }
-  doImagePicking(){
-    this.imagePicker.getPictures(this.options).then((results) => {
-      for (let i = 0; i < results.length; i++) {
-        console.log('Image URI ' + i + ': ' + results[i]);
-        this.filePath.resolveNativePath(results[i]).then(filePath => {
-          console.log('-Dateipfad-' + filePath);
-        })
-            .catch(e => console.log(e));
-      }
-    }, (err) => {
-      console.log(err);
-    });
+  async doImagePicking(){
+    try {
+      // this.imagePicker.hasReadPermission().then(result => {
+          // if (result){
+            console.log('2readPermission ');
+            this.imagePicker.getPictures(this.options).then((results) => {
+              for (let i = 0; i < results.length; i++) {
+                console.log('Image URI ' + i + ': ' + results[i]);
+                // this.filePath.resolveNativePath(results[i]).then(filePath => {
+                //   console.log('-Dateipfad-' + filePath);
+                // })
+                //     .catch(e => console.log('ERROR ' + e));
+              }
+            }, (err) => {
+              console.log('ERROR ' + err);
+            });
+          // } else {
+          //   this.imagePicker.requestReadPermission();
+          // }
+        // });
+    } catch (e){
+      console.log('ERROR IMAGE PICKING ' + e.toString());
+    } finally {
+      console.log('Caught Exception ');
+    }
+
   }
 
 
@@ -143,6 +158,10 @@ export class FolderPage implements OnInit {
     // doc.save('table.pdf');
     doc.table(20, 20, this.generateData(15), this.headers, { autoSize: true });
     doc.addPage();
+    console.log('Ext Root Dir: ' + this.file.externalRootDirectory);
+    console.log('App  Dir: ' + this.file.applicationDirectory);
+    console.log('applicationStorageDirectory Dir: ' + this.file.applicationStorageDirectory);
+    console.log('Data Dir: ' + this.file.dataDirectory);
     this.file.readAsDataURL(this.file.externalRootDirectory + '/DCIM/', 'ett.jpg').then(txt_dataURL => {
       console.log('Datei Test = ' + txt_dataURL);
       doc.addImage(txt_dataURL, 1, 1, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
